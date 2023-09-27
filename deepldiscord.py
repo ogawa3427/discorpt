@@ -1,7 +1,8 @@
-
 import discord
 import re
 import deepl
+import openai  
+
 
 # Intentsの設定
 intents = discord.Intents.default()
@@ -11,8 +12,6 @@ intents.reactions = True
 
 client = discord.Client(intents=intents)
 
-def is_japanese(str):
-    return True if re.search(r'[ぁ-んァ-ン]', str) else False
 
 @client.event
 async def on_ready():
@@ -25,17 +24,44 @@ async def on_message(message):
         return
 
     # ボットがメンションされているかチェック
-    if client.user in message.mentions:
-        msg = message.content
-        print(msg)
-        lang = "EN-US"
+    msg = message.content
+    print(msg)
+    lang = "EN-US"
+    translator = deepl.Translator(DEEPL_API_KEY) 
+    result = translator.translate_text(msg, target_lang=lang)
+    result_txt = result.text
+    print(result_txt)
 
-        translator = deepl.Translator(DEEPL_API_KEY) 
-        result = translator.translate_text(msg, target_lang=lang)
-        result_txt = result.text
-        result_txt = re.sub(r'<@\d*>', f'<@{1155474058578776084}>', result_txt)  # メンション部分をボットのメンションに変更
-        print(result_txt)
 
-        await message.channel.send(result_txt)
 
+    text = result_txt
+
+        # OpenAIにテキストを送信してレスポンスを取得
+    response = openai.ChatCompletion.create(
+    model="gpt-4",
+    messages=[
+        {
+            "role": "system",
+            "content": "nomal GPT4",
+        },
+        {
+            "role": "user",
+            "content": text,
+            }
+        ],
+    )
+    gpt3_response = response["choices"][0]["message"]["content"]
+    print(gpt3_response)
+
+    msg = gpt3_response
+    print(gpt3_response)
+    lang = "Ja"
+
+    translator = deepl.Translator(DEEPL_API_KEY) 
+    result = translator.translate_text(msg, target_lang=lang)
+    result_txt = result.text
+
+    await message.channel.send(result_txt)
+    print(result_txt)
 client.run(TOKEN)
+
